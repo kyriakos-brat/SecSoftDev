@@ -1,14 +1,14 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 import string
 import win32file
 from ctypes import windll
-
+#
 import os
-
+#
+import json
+#
+import xml.etree.ElementTree as ET
+#
+import zipfile
 
 def get_logical_drives():
     drives = []
@@ -42,7 +42,7 @@ def get_drive_info(drive_name):
     return drive_type, storage_info
 
 
-def task1():
+def exercise1():
     drives_list = get_logical_drives()
     print("List of drives:")
     for i, drive in enumerate(drives_list):
@@ -67,14 +67,16 @@ class FileWorker:
         for file in os.listdir():
             if file.endswith(".txt"):
                 self.files.append(file)
-        print("List of files: ")
-        for n in self.files:
-            print("\t", n)
+        print("List of TXT files: ")
+        for filename in self.files:
+            print("\t", filename)
 
     def create_file(self):
         name = input("Enter filename: ")
-        my_file = open(name, "w+")
-        my_file.close()
+        if not name.endswith(".txt"):
+            name = name + ".txt"
+        file = open(name, "w+")
+        file.close()
         print(f"File {name} created.")
 
     def remove_file(self):
@@ -83,37 +85,150 @@ class FileWorker:
 
     def write_to_file(self):
         name = input("Enter filename: ")
-        my_file = open(name, "w+")
-        my_file.write(input("Enter string to write: "))
-        my_file.close()
+        file = open(name, "w+")
+        file.write(input("Enter string to write: "))
+        file.close()
         print("String written successfully.")
 
     def get_from_file(self):
         name = input("Enter filename: ")
-        my_file = open(name, "r+")
-        print("File contains: ", my_file.read())
-        my_file.close()
+        file = open(name, "r+")
+        print("File contains: ", file.read())
+        file.close()
 
 
-def task2():
+def exercise2():
     fw = FileWorker()
-    menu = "\nMenu:\n   1. Show files list\n   2. Create file\n   3. Remove file\n   4. Write data in file\n   5. Read data from file\n   0. Exit\n\n"
+    menu = "Menu:\n" \
+           "1. Show files list\n" \
+           "2. Create file\n" \
+           "3. Remove file\n" \
+           "4. Write data in file\n" \
+           "5. Read data from file\n" \
+           "0. Exit\n"
     while True:
         print(menu)
-        c = input("Chose option: ")
-        if c == "1":
-            fw.get_list_files()
-        elif c == "2":
+        file_option = input("Chose option: ")
+        if file_option == "1":
+            fw.get_files_list()
+        elif file_option == "2":
             fw.create_file()
-        elif c == "3":
+        elif file_option == "3":
             fw.remove_file()
-        elif c == "4":
+        elif file_option == "4":
             fw.enter_to_file()
-        elif c == "5":
+        elif file_option == "5":
             fw.get_from_file()
-        elif c == "0":
+        elif file_option == "0":
+            break
+
+
+def exercise3():
+    dump_data = {'Name': 'Kirill', 'Age': 22, 'DesiredMark': 9001, 'Etc.': ':)'}
+    json_file = open('file.json', 'w+')
+    json.dump(dump_data, json_file)
+    json_file.close()
+    json_file = open('file.json', 'r+')
+    print(json_file.read())
+    json_file.close()
+    os.remove(json_file.name)
+
+
+def exercise4():
+    parent_node = ET.Element('parent')
+    child_node1 = ET.SubElement(parent_node, 'child_first')
+    tree = ET.ElementTree(parent_node)
+    tree.write('file.xml')
+    #
+    tree = ET.parse('file.xml')
+    root_node = tree.getroot()
+    ET.SubElement(root_node[0], 'child_second')
+    tree.write('file.xml')
+    #
+    ET.dump(tree)
+    #
+    os.remove('file.xml')
+
+
+class ZipWorker:
+    def __init__(self):
+        self.zip = []
+
+    def get_list_files(self):
+        self.zip = []
+        for file in os.listdir():
+            if file.endswith(".zip"):
+                self.zip.append(file)
+        print("List of ZIP files: ")
+        for archive_name in self.zip:
+            print("\t", archive_name)
+
+    def create_zip(self):
+        zip_name = input("Enter filename: ")
+        if not zip_name.endswith(".zip"):
+            zip_name = zip_name + ".zip"
+        filename = input("Enter filename which will be added to archive: ")
+        zip_file = zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED)
+        zip_file.write(filename)
+        zip_file.close()
+        print(f"Archive {zip_name} created.")
+
+    def remove_file(self):
+        name = input("Enter filename: ")
+        os.remove(name)
+        print("Archive deleted successfully.")
+
+    def unpack_zip(self):
+        zip_name = input("Enter filename: ")
+        zip_file = zipfile.ZipFile(zip_name, 'r', zipfile.ZIP_DEFLATED)
+        zip_file.extractall()
+        print("Archive unzipped successfully. Here is unzipped files: ")
+        zip_file.printdir()
+        zip_file.close()
+
+
+def exercise5():
+    fw = ZipWorker()
+    menu = "Menu:\n" \
+           "1. Show list of archives\n" \
+           "2. Create archive with file\n" \
+           "3. Delete archive\n" \
+           "4. Unzip archive\n" \
+           "0. Exit\n"
+    while True:
+        print(menu)
+        archive_option = input("Chose option: ")
+        if archive_option == "1":
+            fw.get_list_files()
+        elif archive_option == "2":
+            fw.create_zip()
+        elif archive_option == "3":
+            fw.remove_file()
+        elif archive_option == "4":
+            fw.unpack_zip()
+        elif archive_option == "0":
             break
 
 
 if __name__ == '__main__':
-    task1()
+    while True:
+        print("Exercises:")
+        print("1. Exercise №1\n"
+              "2. Exercise №2\n"
+              "3. Exercise №3\n"
+              "4. Exercise №4\n"
+              "5. Exercise №5\n"
+              "0. Exit\n")
+        chosen_exercise = input("Chose exercise: ")
+        if chosen_exercise == "1":
+            exercise1()
+        elif chosen_exercise == "2":
+            exercise2()
+        elif chosen_exercise == "3":
+            exercise3()
+        elif chosen_exercise == "4":
+            exercise4()
+        elif chosen_exercise == "5":
+            exercise5()
+        elif chosen_exercise == "0":
+            break

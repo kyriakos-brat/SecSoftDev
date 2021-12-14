@@ -128,11 +128,19 @@ std::string sha256(const std::string str)
     SHA256_Update(&sha256, str.c_str(), str.size());
     SHA256_Final(hash, &sha256);
     std::stringstream ss;
+    //for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+    //{
+    //    ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    //}
+    //return ss.str();
+    static const char characters[] = "0123456789ABCDEF";
+    std::string result(SHA256_DIGEST_LENGTH * 2, ' ');
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
     {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+        result[2 * i] = characters[(unsigned int)hash[i] >> 4];
+        result[2 * i + 1] = characters[(unsigned int)hash[i] & 0x0F];
     }
-    return ss.str();
+    return result;
 }
 
 int g_call_times = 0;
@@ -157,18 +165,18 @@ void bruteforceThread(unsigned long intervalStart, unsigned long invervalEnd)
             }
         }
 
-        CryptoPP::SHA256 hash;
-        std::string digest{};
-        hash.Update(reinterpret_cast<const CryptoPP::byte*>(nonHashedStr.data()), nonHashedStr.size());
-        digest.resize(hash.DigestSize());
-        hash.Final(reinterpret_cast<CryptoPP::byte*>(&digest[0]));
-        //
-        std::string strSink{};
-        CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(strSink));
-        CryptoPP::StringSource(digest, true, new CryptoPP::Redirector(encoder));
+        //CryptoPP::SHA256 hash;
+        //std::string digest{};
+        //hash.Update(reinterpret_cast<const CryptoPP::byte*>(nonHashedStr.data()), nonHashedStr.size());
+        //digest.resize(hash.DigestSize());
+        //hash.Final(reinterpret_cast<CryptoPP::byte*>(&digest[0]));
+        ////
+        //std::string strSink{};
+        //CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(strSink));
+        //CryptoPP::StringSource(digest, true, new CryptoPP::Redirector(encoder));
 
         //std::string hashStr{ "hashPlease" };
-        //std::string strSink = sha256(hashStr);
+        std::string strSink = sha256(nonHashedStr);
 
         auto findResult = bruteforce::hashesToFind.find(strSink);
         if (bruteforce::hashesToFind.end() != findResult) {
@@ -199,7 +207,7 @@ int main()
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    bruteforceThread(0, 100000);
+    //bruteforceThread(0, 100000);
     //int rrr = 0;
 
     std::vector<std::thread> threads;
@@ -207,15 +215,15 @@ int main()
     long intervalGap = bruteforce::NUM_OF_PERMUTATIONS / numOfThreads;
     long currentGap{ 0 };
 
-    //for (int i = 0; i < numOfThreads; ++i) {
-    //    long nextGap = currentGap + intervalGap;
-    //    threads.push_back(std::thread(bruteforceThread, currentGap, nextGap));
-    //    currentGap = nextGap;
-    //}
+    for (int i = 0; i < numOfThreads; ++i) {
+        long nextGap = currentGap + intervalGap;
+        threads.push_back(std::thread(bruteforceThread, currentGap, nextGap));
+        currentGap = nextGap;
+    }
 
-    //for (std::thread& thread : threads) {
-    //    thread.join();
-    //}
+    for (std::thread& thread : threads) {
+        thread.join();
+    }
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Duration is " << duration.count() << "ms" << std::endl;

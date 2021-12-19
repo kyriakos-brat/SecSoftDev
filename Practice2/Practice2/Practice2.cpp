@@ -135,8 +135,7 @@ std::string sha256(const std::string str)
     //return ss.str();
     static const char characters[] = "0123456789ABCDEF";
     std::string result(SHA256_DIGEST_LENGTH * 2, ' ');
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
-    {
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
         result[2 * i] = characters[(unsigned int)hash[i] >> 4];
         result[2 * i + 1] = characters[(unsigned int)hash[i] & 0x0F];
     }
@@ -227,5 +226,5 @@ int main()
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "Duration is " << duration.count() << "ms" << std::endl;
-    std::cout << "Call count is " << g_call_times << std::endl;
+    //std::cout << "Call count is " << g_call_times << std::endl;
 }
